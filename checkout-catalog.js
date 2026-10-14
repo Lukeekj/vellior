@@ -1,4 +1,10 @@
 const cfg=window.VELLIOR_SUPABASE_CONFIG;
+// A checkout sempre oferece retorno à sacola, inclusive em telas pequenas.
+const back=document.createElement('a');back.href='index.html';back.textContent='← Voltar à loja e à sacola';back.style='display:block;max-width:1120px;margin:20px auto 0;padding:0 24px;font-size:12px';document.querySelector('main.layout')?.before(back);
+const shippingNote=document.createElement('p');shippingNote.textContent='Origem do envio: Atibaia/SP · CEP 12949-052. O endereço é preenchido pelo CEP; a cotação dos Correios será ativada após configurar as credenciais do serviço.';shippingNote.style='font-size:12px;line-height:1.6;color:#707277';document.querySelector('.summary .notice')?.before(shippingNote);
+// Consulta de CEP: busca somente dados postais públicos; número/complemento continuam manuais.
+const cep=document.querySelector('#cep');
+if(cep){let lastCep='';const lookup=async()=>{const digits=cep.value.replace(/\D/g,'');if(digits.length!==8||digits===lastCep)return;lastCep=digits;cep.setCustomValidity('');try{const response=await fetch(`https://viacep.com.br/ws/${digits}/json/`);if(!response.ok)throw Error();const address=await response.json();if(address.erro)throw Error();for(const [id,value] of [['street',address.logradouro],['district',address.bairro],['city',address.localidade],['state',address.uf]]){const input=document.getElementById(id);if(input&&value)input.value=value}document.querySelector('#number')?.focus()}catch{lastCep='';cep.setCustomValidity('CEP não localizado. Confira ou preencha o endereço manualmente.');cep.reportValidity()}};cep.addEventListener('input',()=>{const digits=cep.value.replace(/\D/g,'').slice(0,8);cep.value=digits.length>5?`${digits.slice(0,5)}-${digits.slice(5)}`:digits});cep.addEventListener('blur',lookup)}
 if(cfg?.url&&cfg?.publishableKey){
   try{
     const {createClient}=await import('https://esm.sh/@supabase/supabase-js@2.117.3');
@@ -20,7 +26,8 @@ if(cfg?.url&&cfg?.publishableKey){
         pic.onerror=()=>pic.src='assets/hero-product.jpg';
         const text=document.createElement('span');text.textContent=`${product.name}\nQtd. ${entry.quantity}`;
         const value=document.createElement('strong');value.textContent=new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(price*entry.quantity);
-        row.append(pic,text,value);host.append(row);
+        const remove=document.createElement('button');remove.type='button';remove.textContent='Remover';remove.setAttribute('aria-label',`Remover ${product.name}`);remove.addEventListener('click',()=>{const next=JSON.parse(localStorage.getItem('vellior_cart')||'[]').filter(item=>item.id!==entry.id);localStorage.setItem('vellior_cart',JSON.stringify(next));location.reload()});
+        row.append(pic,text,value,remove);host.append(row);
       }
       const amount=new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(total);
       document.querySelector('#subtotal').textContent=amount;document.querySelector('#total').textContent=amount;
