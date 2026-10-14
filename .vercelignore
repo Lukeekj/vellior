@@ -1,0 +1,6 @@
+*.md
+supabase-schema.sql
+reference/**
+*.zip
+admin.html
+
