@@ -114,7 +114,7 @@
     const searchPanel=document.querySelector('#searchPanel'),searchInput=document.querySelector('#storeSearch');document.querySelector('#searchToggle').onclick=()=>{searchPanel.hidden=!searchPanel.hidden;if(!searchPanel.hidden)searchInput.focus()};searchInput.addEventListener('input',()=>{const q=searchInput.value.trim().toLocaleLowerCase('pt-BR'),results=document.querySelector('#searchResults');if(!q){results.replaceChildren();return}const found=products.filter(p=>`${p.name} ${p.category} ${p.sku}`.toLocaleLowerCase('pt-BR').includes(q)).slice(0,8);results.innerHTML=found.length?found.map(p=>`<button type="button" data-search-product="${escapeHtml(p.id)}" style="display:block;width:100%;text-align:left;background:white;border:0;border-bottom:1px solid #eee;padding:12px;cursor:pointer">${escapeHtml(p.name)} · ${currency(p.price)}</button>`).join(''):'<p>Nenhum produto encontrado.</p>';results.querySelectorAll('[data-search-product]').forEach(b=>b.onclick=()=>{searchPanel.hidden=true;showProduct(b.dataset.searchProduct)})});
     document.querySelectorAll('img').forEach(imageFallback);document.querySelectorAll('.logo').forEach(a=>a.onclick=e=>{e.preventDefault();document.querySelector('#viewLayer')?showHome():window.scrollTo({top:0,behavior:'smooth'})});renderHome();updateCart();
     if(location.hash.startsWith('#produto/'))showProduct(decodeURIComponent(location.hash.slice(9)));else if(location.hash.startsWith('#categoria/'))renderCategory(decodeURIComponent(location.hash.slice(11)));
-    window.VELLIOR_COMMERCE={renderCategory,showProduct,cart:()=>structuredClone(cart),products,setProducts(next){products.splice(0,products.length,...next);if(location.hash.startsWith('#produto/'))showProduct(decodeURIComponent(location.hash.slice(9)));else if(location.hash.startsWith('#categoria/'))renderCategory(decodeURIComponent(location.hash.slice(11)));else{const grid=document.querySelector('#productGrid');grid.innerHTML=products.filter(p=>p.featured).map(productCard).join('')||'<div class="no-products">Ainda não há produtos publicados.</div>';bindCards();updateCart()}}};
+    window.VELLIOR_COMMERCE={renderCategory,showProduct,cart:()=>structuredClone(cart),products,setProducts(next){products.splice(0,products.length,...next);if(location.hash.startsWith('#produto/'))showProduct(decodeURIComponent(location.hash.slice(9)));else if(location.hash.startsWith('#categoria/'))renderCategory(decodeURIComponent(location.hash.slice(11)));else{const grid=document.querySelector('#productGrid'),featured=products.filter(p=>p.featured),visible=featured.length?featured:products.slice(0,4);grid.innerHTML=visible.map(productCard).join('')||'<div class="no-products">Ainda não há produtos publicados.</div>';bindCards();updateCart()}}};
   })();
   </script>
   <script type="module">
@@ -123,10 +123,11 @@
     try{
       const {createClient}=await import('https://esm.sh/@supabase/supabase-js@2.117.3');
       const db=createClient(cfg.url,cfg.publishableKey);
-      const [{data:rows,error},{data:cats},{data:images}]=await Promise.all([
+      const [{data:rows,error},{data:cats},{data:images},{data:demoSetting}]=await Promise.all([
         db.from('products').select('id,name,slug,description,category_id,sku,price_cents,sale_price_cents,stock,featured,created_at').eq('published',true).order('created_at',{ascending:false}).limit(100),
         db.from('categories').select('id,name,slug').eq('published',true),
-        db.from('product_images').select('product_id,storage_path,alt_text,sort_order').order('sort_order')
+        db.from('product_images').select('product_id,storage_path,alt_text,sort_order').order('sort_order'),
+        db.from('store_settings').select('value').eq('key','show_demo_products').maybeSingle()
       ]);
       if(error)throw error;
       const catMap=new Map((cats||[]).map(c=>[c.id,c.name]));
@@ -135,6 +136,7 @@
       const norm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase();
       const items=(rows||[]).map(p=>{const photos=byProduct.get(p.id)||[];const image=photos[0]?.storage_path?db.storage.from('product-images').getPublicUrl(photos[0].storage_path).data.publicUrl:null;return{id:p.id,name:p.name,category:labels[norm(catMap.get(p.category_id))]||catMap.get(p.category_id)||'Acessórios',price:(p.sale_price_cents??p.price_cents)/100,oldPrice:p.sale_price_cents!=null?p.price_cents/100:null,image:image||'assets/hero-product.jpg',description:p.description||'Consulte os detalhes com a equipe VELLIOR.',color:'',sku:p.sku,stock:p.stock,featured:p.featured,slug:p.slug,real:true}});
       if(items.length)window.VELLIOR_COMMERCE?.setProducts(items);
+      else if(demoSetting?.value===false)window.VELLIOR_COMMERCE?.setProducts([]);
     }catch(error){console.error('Não foi possível sincronizar o catálogo público:',error)}
   }
   </script>
