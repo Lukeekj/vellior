@@ -19,5 +19,67 @@ document.querySelector('#pName').addEventListener('input',()=>{const name=docume
 document.querySelector('#pSku').addEventListener('input',e=>e.currentTarget.dataset.edited='true');document.querySelector('#pSlug').addEventListener('input',e=>e.currentTarget.dataset.edited='true');
 document.querySelector('#productForm').addEventListener('submit',async e=>{e.preventDefault();const btn=document.querySelector('#saveProduct');btn.disabled=true;btn.textContent='Salvando…';try{const price=Math.round(Number(document.querySelector('#pPrice').value)*100),sale=document.querySelector('#pSale').value;const payload={name:document.querySelector('#pName').value.trim(),sku:document.querySelector('#pSku').value.trim()||generatedSku(),slug:document.querySelector('#pSlug').value.trim()||slugify(document.querySelector('#pName').value),price_cents:price,sale_price_cents:sale?Math.round(Number(sale)*100):null,stock:Number(document.querySelector('#pStock').value),category_id:document.querySelector('#pCategory').value||null,description:document.querySelector('#pDescription').value.trim()||null,published:document.querySelector('#pPublished').value==='true',featured:document.querySelector('#pFeatured').value==='true',updated_at:new Date().toISOString()};if(payload.sale_price_cents!=null&&payload.sale_price_cents>payload.price_cents)throw Error('O preço promocional não pode superar o preço normal.');const id=document.querySelector('#productId').value;const result=id?await sb.from('products').update(payload).eq('id',id):await sb.from('products').insert(payload);if(result.error)throw result.error;document.querySelector('#modal').classList.add('hidden');await Promise.all([loadProducts(),loadDashboard()]);message(document.querySelector('#globalMessage'),id?'Produto atualizado.':'Produto criado.','success')}catch(err){message(document.querySelector('#formMessage'),err.message==='Failed to fetch'?'Falha de conexão. Tente novamente.':err.message||'Não foi possível salvar.','error')}finally{btn.disabled=false;btn.textContent='Salvar produto'}});
 document.querySelector('#newProduct').addEventListener('click',()=>openProduct());document.querySelector('#closeModal').addEventListener('click',()=>document.querySelector('#modal').classList.add('hidden'));document.querySelector('#cancelModal').addEventListener('click',()=>document.querySelector('#modal').classList.add('hidden'));document.querySelector('#goAccount').addEventListener('click',()=>location.href='conta.html');document.querySelector('#storeBtn').addEventListener('click',()=>location.href='index.html');document.querySelectorAll('.nav button').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.querySelector('#view-'+b.dataset.view).classList.add('active');document.querySelector('#pageTitle').textContent=b.querySelector('span').textContent}));init();
+</script>
+<script type="module">
+try{
+  const cfg=window.VELLIOR_SUPABASE_CONFIG;
+  const {createClient}=await import('https://esm.sh/@supabase/supabase-js@2.117.3');
+  const db=createClient(cfg.url,cfg.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+  const {data:{user}}=await db.auth.getUser();
+  if(user){
+    const {data:role}=await db.from('user_roles').select('role').eq('user_id',user.id).maybeSingle();
+    if(role?.role==='admin'){
+      const wanted=[['RELÓGIOS','relogios'],['SEMIJOIAS','semijoias'],['COLARES E CORRENTES','colares-e-correntes'],['PULSEIRAS','pulseiras'],['ANÉIS','aneis'],['BRINCOS','brincos'],['ACESSÓRIOS','acessorios']];
+      const {data:existing}=await db.from('categories').select('id,name,slug');
+      const present=new Set((existing||[]).map(c=>c.slug));
+      const missing=wanted.filter(([,slug])=>!present.has(slug)).map(([name,slug])=>({name,slug,description:`${name} VELLIOR`,published:true}));
+      if(missing.length){const {error}=await db.from('categories').insert(missing);if(error)console.warn('Categorias não foram inicializadas:',error.message)}
+      const {data:allCats}=await db.from('categories').select('id,name,slug').order('name');
+      const select=document.querySelector('#pCategory');
+      if(select&&allCats){select.replaceChildren(new Option('Sem categoria',''));for(const c of allCats){const option=new Option(c.name,c.id);select.add(option)}}
+    }
+  }
+  const settings=document.querySelector('#view-settings .columns');
+  if(settings){
+    const panel=document.createElement('section');panel.className='panel';
+    panel.innerHTML='<h2>Resend · e-mails</h2><p>Configure a chave privada aqui; ela será enviada ao backend e guardada no Vault do Supabase, nunca numa tabela pública.</p><div class="field"><label for="resendApiKey">API key do Resend</label><input id="resendApiKey" type="password" autocomplete="new-password" placeholder="re_…"></div><div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px"><button type="button" class="btn" id="saveResendKey">Salvar chave</button><button type="button" class="btn light" id="testResend">Enviar e-mail de teste</button></div><div class="notice" id="resendMessage" role="status" aria-live="polite" style="margin-top:12px">O teste é enviado ao e-mail da conta administrativa. É necessário publicar a função resend-admin e aplicar resend-vault.sql.</div>';
+    settings.prepend(panel);
+    const request=async(action,apiKey)=>{const status=document.querySelector('#resendMessage');status.textContent='Processando…';const {data:{session}}=await db.auth.getSession();if(!session?.access_token)throw Error('Sua sessão expirou. Entre novamente.');const response=await fetch(`${cfg.url}/functions/v1/resend-admin`,{method:'POST',headers:{apikey:cfg.publishableKey,Authorization:`Bearer ${session.access_token}`,'Content-Type':'application/json'},body:JSON.stringify({action,apiKey})});const result=await response.json().catch(()=>({}));if(!response.ok)throw Error(result.error||'Falha na função de e-mail.');status.textContent=result.message||'Concluído.'};
+    document.querySelector('#saveResendKey').onclick=async()=>{const button=document.querySelector('#saveResendKey'),input=document.querySelector('#resendApiKey');button.disabled=true;try{await request('configure',input.value);input.value=''}catch(error){document.querySelector('#resendMessage').textContent=error.message}finally{button.disabled=false}};
+    document.querySelector('#testResend').onclick=async()=>{const button=document.querySelector('#testResend');button.disabled=true;try{await request('test')}catch(error){document.querySelector('#resendMessage').textContent=error.message}finally{button.disabled=false}};
+  }
+  const form=document.querySelector('#productForm');
+  const fileBox=document.createElement('div');fileBox.className='field';fileBox.innerHTML='<label for="pImages">Fotos do produto</label><input id="pImages" type="file" accept="image/jpeg,image/png,image/webp" multiple><small>JPEG, PNG ou WebP; até 5 MB por foto. As imagens serão públicas na vitrine.</small><div id="pImagePreview" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"></div>';
+  document.querySelector('#pDescription').parentElement.after(fileBox);
+  const fileInput=document.querySelector('#pImages'),preview=document.querySelector('#pImagePreview');
+  fileInput.addEventListener('change',()=>{preview.replaceChildren();for(const file of fileInput.files){const img=document.createElement('img');img.alt=file.name;img.src=URL.createObjectURL(file);img.style='width:68px;height:68px;object-fit:cover;background:#eee';preview.append(img)}});
+  document.querySelector('#newProduct').addEventListener('click',()=>setTimeout(()=>{if(!document.querySelector('#productId').value){document.querySelector('#pPublished').value='true';document.querySelector('#pSku').dataset.edited='';document.querySelector('#pSlug').dataset.edited=''}},0));
+  form.addEventListener('submit',async e=>{
+    e.preventDefault();e.stopImmediatePropagation();
+    const button=document.querySelector('#saveProduct'),msg=document.querySelector('#formMessage');
+    button.disabled=true;button.textContent='Salvando…';msg.classList.add('hidden');
+    try{
+      const files=[...fileInput.files];
+      for(const f of files)if(!['image/jpeg','image/png','image/webp'].includes(f.type)||f.size>5*1024*1024)throw Error('Use imagens JPEG, PNG ou WebP de até 5 MB cada.');
+      const name=document.querySelector('#pName').value.trim();
+      const normal=Math.round(Number(document.querySelector('#pPrice').value)*100);
+      const promo=document.querySelector('#pSale').value;
+      const payload={name,sku:document.querySelector('#pSku').value.trim()||`VEL-${crypto.randomUUID().slice(0,8).toUpperCase()}`,slug:document.querySelector('#pSlug').value.trim()||name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''),price_cents:normal,sale_price_cents:promo?Math.round(Number(promo)*100):null,stock:Number(document.querySelector('#pStock').value),category_id:document.querySelector('#pCategory').value||null,description:document.querySelector('#pDescription').value.trim()||null,published:document.querySelector('#pPublished').value==='true',featured:document.querySelector('#pFeatured').value==='true',updated_at:new Date().toISOString()};
+      if(payload.sale_price_cents!==null&&payload.sale_price_cents>normal)throw Error('O preço promocional não pode ser maior que o preço normal.');
+      const productId=document.querySelector('#productId').value;
+      const saved=productId?await db.from('products').update(payload).eq('id',productId).select('id').single():await db.from('products').insert(payload).select('id').single();
+      if(saved.error)throw saved.error;
+      const pid=saved.data.id;
+      for(let i=0;i<files.length;i++){
+        const file=files[i],ext=file.type==='image/jpeg'?'jpg':file.type.split('/')[1],path=`${pid}/${crypto.randomUUID()}.${ext}`;
+        const uploaded=await db.storage.from('product-images').upload(path,file,{contentType:file.type,cacheControl:'31536000',upsert:false});
+        if(uploaded.error)throw uploaded.error;
+        const row=await db.from('product_images').insert({product_id:pid,storage_path:path,alt_text:name,sort_order:i});
+        if(row.error){await db.storage.from('product-images').remove([path]);throw row.error}
+      }
+      document.querySelector('#modal').classList.add('hidden');button.disabled=false;button.textContent='Salvar produto';location.reload();
+    }catch(error){msg.textContent=error.message||'Não foi possível salvar o produto.';msg.classList.remove('hidden');msg.classList.add('error');button.disabled=false;button.textContent='Salvar produto'}
+  },true);
+}catch(error){console.error('Configuração de fotos/categorias indisponível:',error)}
 </script></body></html>
 
