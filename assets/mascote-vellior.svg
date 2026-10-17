@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 620" role="img" aria-labelledby="title desc">
+  <title id="title">Vell, mascote da VELLIOR</title>
+  <desc id="desc">Uma raposa prateada elegante usando uniforme grafite da VELLIOR, camisa clara, lenço dourado e relógio de pulso.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#f5f4f1"/><stop offset="1" stop-color="#e6e5e2"/></linearGradient>
+    <linearGradient id="fur" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#f6f6f4"/><stop offset=".55" stop-color="#c8c9ca"/><stop offset="1" stop-color="#85888c"/></linearGradient>
+    <linearGradient id="jacket" x1="0" x2="1"><stop stop-color="#242629"/><stop offset=".5" stop-color="#393b3f"/><stop offset="1" stop-color="#242629"/></linearGradient>
+    <linearGradient id="gold" x1="0" x2="1"><stop stop-color="#b28b4b"/><stop offset=".48" stop-color="#e4c583"/><stop offset="1" stop-color="#a77b37"/></linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="0" dy="9" stdDeviation="10" flood-color="#303236" flood-opacity=".13"/></filter>
+  </defs>
+  <ellipse cx="240" cy="583" rx="142" ry="18" fill="#303236" opacity=".1"/>
+  <g filter="url(#shadow)">
+    <!-- alfaiataria do uniforme -->
+    <path d="M113 565c5-104 31-171 95-194h64c65 23 90 90 95 194H113Z" fill="url(#jacket)"/>
+    <path d="m190 365 50 28 50-28 27 37-39 42 28 121H174l28-121-39-42 27-37Z" fill="#f4f1eb"/>
+    <path d="m190 365 50 28-31 50-37-41 18-37Zm100 0-50 28 31 50 37-41-18-37Z" fill="#303236"/>
+    <path d="m235 393 5 0 15 58-15 21-15-21 15-58Z" fill="url(#gold)"/>
+    <path d="M140 428 181 410l21 41-15 114h-63l16-137Zm200 0-41-18-21 41 15 114h63l-16-137Z" fill="url(#jacket)"/>
+    <path d="M176 479c13-8 25-7 35 3l-6 11c-12-7-20-8-31-1l2-13Zm98 3c10-10 22-11 35-3l2 13c-11-7-19-6-31 1l-6-11Z" fill="#4a4c50"/>
+    <path d="M227 502h26v28h-26z" rx="3" fill="#e8e5de" stroke="url(#gold)" stroke-width="2"/>
+    <path d="m240 507 8 9-8 9-8-9 8-9Z" fill="url(#gold)"/>
+    <text x="240" y="551" text-anchor="middle" fill="#e8e5de" font-family="Georgia,serif" font-size="10" letter-spacing="2.2">VELLIOR</text>
+    <!-- cabeça e orelhas da raposa -->
+    <path d="M154 153 143 54c-2-17 15-25 28-12l65 57 66-57c13-12 29-4 27 13l-11 99c27 23 42 57 39 95-4 67-53 110-117 110s-113-43-117-110c-3-39 12-73 41-96Z" fill="url(#fur)"/>
+    <path d="m158 139-7-72 54 48c-18 4-34 12-47 24Zm164 0 7-72-54 48c18 4 34 12 47 24Z" fill="#a76668" opacity=".78"/>
+    <path d="M167 193c20-28 45-43 73-43s53 15 73 43c-12 12-22 27-28 44-12 33-25 50-45 50s-33-17-45-50c-6-17-16-32-28-44Z" fill="#f7f4ef"/>
+    <path d="M179 200c13-10 27-11 41-2-5 17-16 26-33 24-9-1-13-12-8-22Zm82-2c14-9 28-8 41 2 5 10 1 21-8 22-17 2-28-7-33-24Z" fill="#303236"/>
+    <ellipse cx="201" cy="207" rx="4" ry="6" fill="#fff"/><ellipse cx="279" cy="207" rx="4" ry="6" fill="#fff"/>
+    <path d="M228 249q12-10 24 0-2 13-12 14-10-1-12-14Z" fill="#51464a"/>
+    <path d="M240 263v12m0 0q-12 13-23 0m23 0q12 13 23 0" fill="none" stroke="#747174" stroke-width="3" stroke-linecap="round"/>
+    <path d="M176 290q64 45 128 0-17 47-64 48-47-1-64-48Z" fill="#f9f7f2"/>
+    <path d="M153 229q-24 8-35 25m36-7q-23 0-39 14m213-32q24 8 35 25m-36-7q23 0 39 14" fill="none" stroke="#86898d" stroke-width="2" stroke-linecap="round"/>
+    <!-- punhos, luvas e relógio de assinatura -->
+    <path d="M121 482c-25 21-37 48-29 62 8 14 28 7 47-12l34-37-18-24-34 11Zm238 0c25 21 37 48 29 62-8 14-28 7-47-12l-34-37 18-24 34 11Z" fill="url(#fur)"/>
+    <circle cx="324" cy="472" r="18" fill="url(#gold)"/><circle cx="324" cy="472" r="12" fill="#f7f5f0" stroke="#8e7042" stroke-width="2"/><path d="M324 464v8l6 4" fill="none" stroke="#303236" stroke-width="1.6" stroke-linecap="round"/>
+  </g>
+</svg>
+
