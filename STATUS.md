@@ -7,12 +7,15 @@
 - Migração inicial aplicada no Supabase, com tabelas, restrições, índices e RLS.
 - Papel administrativo provisionado diretamente no Supabase para a conta Google autorizada pelo proprietário; cadastro público não pode atribuir papel.
 - Painel `admin.html` publicado e verificado com a sessão autorizada: dashboard sem vendas fictícias, consulta de pedidos/estoque, catálogo, formulário de criar/editar produto e avisos de estado das integrações.
-- Exclusão segura de produtos no painel: produto vinculado a pedido é despublicado; sem pedido pode ser excluído.
-- Edge Functions `newsletter`, `resend-admin` e `mercadopago-admin` implantadas com verificação administrativa; tabelas de newsletter e limites de cadastro com RLS aplicados.
-- Newsletter pública e área administrativa de campanhas: inscrição, boas-vindas, descadastro, rascunhos com imagem e disparo explícito para inscritos ativos.
-- Configuração de Access Token/Public Key e teste de conectividade do Mercado Pago no admin; tokens privados só são guardados no Supabase Vault.
 - Controle de catálogo via RLS; pedidos e pagamentos são somente leitura no painel. O navegador não recebe service-role.
 - Migração de baseline versionada em `supabase/migrations/202610140001_vellior_baseline.sql`.
+
+## Implantado, mas ainda não validado de ponta a ponta
+
+- Painel ganhou exclusão segura: produto ligado a pedido deve ser despublicado para preservar o histórico; produto sem pedido pode ser apagado. A ação ainda não foi exercitada com uma sessão de administrador.
+- Edge Functions `newsletter`, `resend-admin` e `mercadopago-admin` estão ativas; tabelas de newsletter e limites de cadastro estão com RLS.
+- Fluxo de newsletter no site/admin: boas-vindas, cancelamento, rascunhos com imagem e disparo explícito para inscritos ativos. Nenhum e-mail/campanha foi enviado como teste nesta revisão.
+- Painel de credenciais/teste Mercado Pago configurado para guardar tokens privados no Vault; nenhuma credencial foi gravada e nenhuma cobrança foi criada.
 
 ## Implementado, mas aguardando credenciais/configuração
 
@@ -24,7 +27,7 @@
 
 - Checkout server-side, cobrança real Mercado Pago, webhook assinado, criação segura de pedidos, eventos automáticos de pagamento e e-mail de confirmação pós-pagamento.
 - Reserva/baixa atômica de estoque, cupons, cálculo de frete, pagamentos, reembolsos e atualização logística.
-- Upload de imagens de produtos, gestão ampliada de clientes/conteúdo e edição de status de pedidos.
+- Gestão ampliada de clientes/conteúdo e edição de status de pedidos.
 - Testes automatizados de segurança, concorrência e ponta a ponta em sandbox.
 
 ## Resultado dos testes desta revisão
@@ -36,6 +39,7 @@
 - Formulário de produto: abriu e apresentou campos; não foi criado produto de teste para evitar dados artificiais na loja real.
 - Migrações newsletter/Vault aplicadas sem erro; RLS ligado nas novas tabelas.
 - Edge Functions `newsletter` (JWT desligado somente para endpoint público; ações admin validam JWT e papel), `resend-admin` e `mercadopago-admin` implantadas.
+- Scripts inline de `index.html` e `admin.html` passaram pela validação de sintaxe do parser JavaScript; Vercel criou o deploy de produção como `READY` para o commit `72c9c49435fa742cf53e68694c334b40f5d4f8a3`.
 - Não testados: envio Resend até destinatário real, campanhas, credenciais Mercado Pago (não salvas), checkout e cenários E2E. Não realizar cobrança real em teste.
 
 ## Próximos passos antes de vender
