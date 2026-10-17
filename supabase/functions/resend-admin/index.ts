@@ -29,6 +29,13 @@ Deno.serve(async (req) => {
     const { data: role, error: roleError } = await userClient.from('user_roles').select('role').eq('user_id', user.id).maybeSingle()
     if (roleError || role?.role !== 'admin') return Response.json({ error: 'Acesso não autorizado.' }, { status: 403, headers: cors })
 
+    if (action === 'configure_sender') {
+      const fromEmail = String(body?.fromEmail || '').trim()
+      if (!/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(fromEmail) || fromEmail.length > 254) return Response.json({ error: 'Informe um e-mail remetente válido de um domínio verificado no Resend.' }, { status: 400, headers: cors })
+      const { error } = await userClient.rpc('set_vellior_secret', { p_name: 'vellior_resend_from_email', p_value: `VELLIOR <${fromEmail}>` })
+      if (error) return Response.json({ error: 'Não foi possível guardar o remetente no Vault.' }, { status: 500, headers: cors })
+      return Response.json({ ok: true, message: 'Remetente configurado. Ele precisa estar verificado no Resend.' }, { headers: cors })
+    }
     if (action === 'configure') {
       const key = String(body?.apiKey || '').trim()
       if (!key.startsWith('re_') || key.length > 512) return Response.json({ error: 'Confira a chave de API do Resend.' }, { status: 400, headers: cors })
@@ -44,7 +51,8 @@ Deno.serve(async (req) => {
     if (vaultError && !Deno.env.get('RESEND_API_KEY')) return Response.json({ error: 'A chave Resend ainda não está configurada.' }, { status: 503, headers: cors })
     if (!apiKey) return Response.json({ error: 'A chave Resend ainda não está configurada.' }, { status: 503, headers: cors })
 
-    const from = Deno.env.get('RESEND_FROM_EMAIL') || 'VELLIOR <onboarding@resend.dev>'
+    const { data: configuredFrom } = await privileged.rpc('get_vellior_secret', { p_name: 'vellior_resend_from_email' })
+    const from = configuredFrom || Deno.env.get('RESEND_FROM_EMAIL') || 'VELLIOR <onboarding@resend.dev>'
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json', 'Idempotency-Key': `vellior-test-${user.id}-${crypto.randomUUID()}` },

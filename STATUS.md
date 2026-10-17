@@ -1,0 +1,47 @@
+# VELLIOR — estado verificado
+
+## Implementado e verificado
+
+- Site público VELLIOR e fluxo de conta publicados em `https://vellior.vercel.app/`.
+- Supabase Auth conectado; login Google e login tradicional já foram verificados em sessão.
+- Migração inicial aplicada no Supabase, com tabelas, restrições, índices e RLS.
+- Papel administrativo provisionado diretamente no Supabase para a conta Google autorizada pelo proprietário; cadastro público não pode atribuir papel.
+- Painel `admin.html` publicado e verificado com a sessão autorizada: dashboard sem vendas fictícias, consulta de pedidos/estoque, catálogo, formulário de criar/editar produto e avisos de estado das integrações.
+- Exclusão segura de produtos no painel: produto vinculado a pedido é despublicado; sem pedido pode ser excluído.
+- Edge Functions `newsletter`, `resend-admin` e `mercadopago-admin` implantadas com verificação administrativa; tabelas de newsletter e limites de cadastro com RLS aplicados.
+- Newsletter pública e área administrativa de campanhas: inscrição, boas-vindas, descadastro, rascunhos com imagem e disparo explícito para inscritos ativos.
+- Configuração de Access Token/Public Key e teste de conectividade do Mercado Pago no admin; tokens privados só são guardados no Supabase Vault.
+- Controle de catálogo via RLS; pedidos e pagamentos são somente leitura no painel. O navegador não recebe service-role.
+- Migração de baseline versionada em `supabase/migrations/202610140001_vellior_baseline.sql`.
+
+## Implementado, mas aguardando credenciais/configuração
+
+- E-mails dependem de chave Resend válida e endereço remetente de domínio verificado, que devem ser configurados em Administração > Configurações.
+- Credenciais Mercado Pago precisam ser coladas no painel pelo administrador (a chave anteriormente compartilhada deve ser revogada/rotacionada). O teste disponível só consulta a conta e não cria cobrança.
+- Google OAuth funciona com as credenciais já configuradas. Apple Sign In foi deixado de fora por decisão do proprietário.
+
+## Ainda não implementado
+
+- Checkout server-side, cobrança real Mercado Pago, webhook assinado, criação segura de pedidos, eventos automáticos de pagamento e e-mail de confirmação pós-pagamento.
+- Reserva/baixa atômica de estoque, cupons, cálculo de frete, pagamentos, reembolsos e atualização logística.
+- Upload de imagens de produtos, gestão ampliada de clientes/conteúdo e edição de status de pedidos.
+- Testes automatizados de segurança, concorrência e ponta a ponta em sandbox.
+
+## Resultado dos testes desta revisão
+
+- SQL de baseline: execução concluída sem erro no projeto Supabase.
+- Provisionamento da conta: retorno confirmou uma linha com role `admin`.
+- Navegação produção: `conta.html` mostrou o link administrativo para a sessão autorizada.
+- Painel produção: autenticação e consulta do dashboard carregaram; pedidos = 0 e catálogo vazio conforme o banco.
+- Formulário de produto: abriu e apresentou campos; não foi criado produto de teste para evitar dados artificiais na loja real.
+- Migrações newsletter/Vault aplicadas sem erro; RLS ligado nas novas tabelas.
+- Edge Functions `newsletter` (JWT desligado somente para endpoint público; ações admin validam JWT e papel), `resend-admin` e `mercadopago-admin` implantadas.
+- Não testados: envio Resend até destinatário real, campanhas, credenciais Mercado Pago (não salvas), checkout e cenários E2E. Não realizar cobrança real em teste.
+
+## Próximos passos antes de vender
+
+1. Rotacionar as credenciais que foram compartilhadas no chat e configurá-las no painel; verificar domínio remetente no Resend.
+2. Implementar e testar Checkout Pro server-side, reserva transacional de estoque, webhook assinado e e-mail pós-pagamento.
+3. Configurar notificações HTTPS do Mercado Pago; só então habilitar cobranças.
+4. Executar testes de isolamento/RLS com conta cliente e testes concorrentes antes de aceitar pedidos pagos.
+
