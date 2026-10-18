@@ -49,3 +49,11 @@
 3. Configurar notificações HTTPS do Mercado Pago; só então habilitar cobranças.
 4. Executar testes de isolamento/RLS com conta cliente e testes concorrentes antes de aceitar pedidos pagos.
 
+
+
+## Próxima alteração em revisão — opções, carrossel e admin
+
+- Preparado em `codex/product-options-carousel-admin`: opções configuráveis por produto e seleção preservada na sacola/checkout; requer a migração SQL indicada em `PRODUCT_OPTIONS_AND_CAROUSEL.md`.
+- Campo de frete no produto mostra indisponibilidade explicitamente; não calcula preço nem prazo.
+- Carrossel configurável pelo admin e áreas separadas para Vitrine, Resend e Mercado Pago.
+- Aguardando aplicação da migração no Supabase e teste visual/funcional com a conta administrativa. Não marcar a cotação de frete como ativa.
