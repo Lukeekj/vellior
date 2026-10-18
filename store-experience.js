@@ -17,10 +17,7 @@
   const commerce=window.VELLIOR_COMMERCE;
   if(commerce){
     const original=commerce.showProduct;
-    commerce.showProduct=id=>{
-      original(id);
-      const p=commerce.products.find(x=>x.id===id),layer=document.querySelector('#viewLayer'),copy=layer?.querySelector('.detail-copy');
-      if(!p||!copy)return;
+    const enhance=()=>{const layer=document.querySelector('#viewLayer'),copy=layer?.querySelector('.detail-copy'),id=decodeURIComponent(location.hash.startsWith('#produto/')?location.hash.slice(9):''),p=commerce.products.find(x=>x.id===id);if(!p||!copy||layer.dataset.experienceEnhanced)return;layer.dataset.experienceEnhanced='true';
       const options=Array.isArray(p.options)?p.options.filter(o=>o&&o.name&&Array.isArray(o.values)&&o.values.length):[];
       const selected={};
       const optionBox=document.createElement('div');optionBox.className='product-options';
@@ -33,6 +30,8 @@
       if(add)add.onclick=()=>{if(options.some(g=>!selected[g.name])){toast('Selecione '+options.filter(g=>!selected[g.name]).map(g=>g.name).join(' e ')+'.');return}const qty=Number(layer.querySelector('#detailQty')?.textContent||1);commerce.addToCart(id,qty,selected);commerce.openBag()};
       if(options.length){const hint=document.createElement('p');hint.className='option-stock-note';hint.textContent='As opções usam o estoque total cadastrado para este produto.';optionBox.after(hint)}
     };
+    commerce.showProduct=id=>{original(id);enhance()};
+    new MutationObserver(enhance).observe(document.body,{childList:true,subtree:true});
     if(location.hash.startsWith('#produto/'))commerce.showProduct(decodeURIComponent(location.hash.slice(9)));
   }
 })();
