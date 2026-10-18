@@ -10,7 +10,7 @@
 
 ## Ativar opções no Supabase
 
-Aplique uma única vez a migração `supabase/migrations/202610180001_product_options.sql` no SQL Editor do projeto Supabase antes de usar o formulário de opções. A coluna é JSONB e já está protegida pelas políticas de linha da tabela `products`. Produtos existentes recebem uma lista vazia.
+A migração `supabase/migrations/20261018064810_product_options.sql` já foi aplicada no projeto VELLIOR. A coluna `options` foi confirmada como JSONB não nulo com padrão `[]`; produtos existentes recebem uma lista vazia. A coluna é JSONB e já está protegida pelas políticas de linha da tabela `products`. Produtos existentes recebem uma lista vazia.
 
 No admin, preencha uma opção por linha:
 
@@ -31,7 +31,7 @@ Os formulários usam as Edge Functions existentes e guardam credenciais privadas
 
 ## Limitações e validação
 
-- A migração precisa ser aplicada no Supabase antes do uso do campo de opções. Sem ela, os campos de opções não salvam.
+- A migração foi aplicada no Supabase; a validação da interface no preview com uma sessão administrativa ainda está pendente.
 - Opções são rótulos e valores de escolha; esta alteração não cria estoque ou preço distintos por variante.
 - A cotação de frete é apenas uma área visual informativa e não consulta Correios/transportadora.
 - O carrossel usa imagens públicas do bucket e não envia automaticamente newsletters.
