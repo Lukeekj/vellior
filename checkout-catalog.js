@@ -7,7 +7,7 @@ const cep=document.querySelector('#cep');
 if(cep){let lastCep='';const lookup=async()=>{const digits=cep.value.replace(/\D/g,'');if(digits.length!==8||digits===lastCep)return;lastCep=digits;cep.setCustomValidity('');try{const response=await fetch(`https://viacep.com.br/ws/${digits}/json/`);if(!response.ok)throw Error();const address=await response.json();if(address.erro)throw Error();for(const [id,value] of [['street',address.logradouro],['district',address.bairro],['city',address.localidade],['state',address.uf]]){const input=document.getElementById(id);if(input&&value)input.value=value}document.querySelector('#number')?.focus()}catch{lastCep='';cep.setCustomValidity('CEP não localizado. Confira ou preencha o endereço manualmente.');cep.reportValidity()}};cep.addEventListener('input',()=>{const digits=cep.value.replace(/\D/g,'').slice(0,8);cep.value=digits.length>5?`${digits.slice(0,5)}-${digits.slice(5)}`:digits});cep.addEventListener('blur',lookup)}
 if(cfg?.url&&cfg?.publishableKey){
   try{
-    const {createClient}=await import('https://esm.sh/@supabase/supabase-js@2.117.3');
+    const {createClient}=await Promise.resolve(window.VelliorSupabase);
     const db=createClient(cfg.url,cfg.publishableKey);
     const cart=JSON.parse(localStorage.getItem('vellior_cart')||'[]').filter(item=>/^[0-9a-f-]{36}$/i.test(item.id));
     if(cart.length){

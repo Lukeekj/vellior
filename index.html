@@ -73,7 +73,7 @@
   <footer class="footer"><div class="footer-grid"><div><div class="footer-logo">VELLIOR</div><p>Relógios, semijoias e acessórios.<br>Elegância em cada detalhe.</p></div><div><h3>CATEGORIAS</h3><a href="#catalogo" data-filter="Relógios">Relógios</a><a href="#catalogo" data-filter="Semijoias">Semijoias</a><a href="#catalogo" data-filter="Acessórios">Acessórios</a></div><div><h3>ATENDIMENTO</h3><a href="conta.html">Minha conta</a><a href="politicas-da-loja.html">Políticas da loja</a><a href="trocas-e-devolucoes.html">Trocas e devoluções</a><a href="mailto:usevellior@gmail.com">Suporte</a></div><div><h3>REDES</h3><p>Pagamento por Pix e cartão via Mercado Pago.</p></div></div><div class="copyright">© 2026 VELLIOR · Preços em BRL.</div></footer>
   <div class="drawer-backdrop" id="bagBackdrop" aria-hidden="true"><aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="bagTitle"><div class="drawer-header"><h2 id="bagTitle">Sua sacola</h2><button class="drawer-close" id="closeBag" aria-label="Fechar sacola">×</button></div><div class="drawer-body" id="bagBody"></div><div class="drawer-footer" id="bagFooter"></div></aside></div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script src="supabase-config.js"></script>
+  <script src="/assets/supabase-client.js"></script><script src="supabase-config.js"></script>
   <script>
   (()=>{
     const products=[
@@ -122,7 +122,7 @@
   const cfg=window.VELLIOR_SUPABASE_CONFIG;
   if(cfg?.url&&cfg?.publishableKey){
     try{
-      const {createClient}=await import('https://esm.sh/@supabase/supabase-js@2.117.3');
+      const {createClient}=await Promise.resolve(window.VelliorSupabase);
       const db=createClient(cfg.url,cfg.publishableKey);
       const [{data:rows,error},{data:cats},{data:images},{data:demoSetting}]=await Promise.all([
         db.from('products').select('id,name,slug,description,category_id,sku,price_cents,sale_price_cents,stock,featured,options,created_at').eq('published',true).order('created_at',{ascending:false}).limit(100),
